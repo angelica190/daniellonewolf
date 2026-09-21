@@ -3,216 +3,922 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Lonewolf Café - AI & Inventory System</title>
+
+  <title>The Lonewolf Café - Inventory System</title>
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background-color: #120d0a; color: #f5f5f5; height: 100vh; overflow: hidden; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
 
-    /* AUTH SCREEN */
-    #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #0d0806; }
-    .login-card { background: rgba(30, 20, 15, 0.95); border: 1px solid #3a2a20; padding: 35px; border-radius: 12px; width: 340px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
-    .login-card h2 { color: #d4a373; margin-bottom: 5px; letter-spacing: 1px; }
-    .login-card small { color: #a08a75; display: block; margin-bottom: 20px; }
+    body {
+      background: #120d0a;
+      color: #f5f5f5;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-    /* FORM INPUTS & BUTTONS */
-    .form-group { text-align: left; margin-bottom: 15px; }
-    .form-group label { display: block; font-size: 0.8rem; color: #d4a373; margin-bottom: 5px; }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; background: #1a100c; border: 1px solid #3a2a20; color: #fff; border-radius: 6px; font-size: 0.9rem; }
-    .btn { padding: 10px 16px; border: none; border-radius: 6px; background: #d4a373; color: #120d0a; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    .btn:hover { background: #faedcd; }
-    .btn-block { width: 100%; }
+    /* ==============================
+       LOGIN
+    ============================== */
 
-    /* LAYOUT */
-    #app-screen { display: none; height: 100vh; }
-    #app-container { display: flex; height: 100%; flex-direction: row; }
-    
-    /* SIDEBAR NAVIGATION */
-    aside { width: 230px; background: #1a100c; border-right: 1px solid #2a1a10; display: flex; flex-direction: column; flex-shrink: 0; }
-    aside .brand { padding: 18px; font-weight: bold; color: #d4a373; background: #0d0806; text-align: center; border-bottom: 1px solid #2a1a10; }
-    aside nav { flex: 1; padding-top: 10px; overflow-y: auto; }
-    aside nav button { width: 100%; padding: 12px 18px; background: none; border: none; color: #a08a75; text-align: left; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-    aside nav button:hover, aside nav button.active { background: #2a1a10; color: #d4a373; border-left: 4px solid #d4a373; }
+    #login-screen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #0d0806;
+    }
 
-    /* MAIN CONTENT */
-    main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: #120d0a; }
-    header { background: #1a100c; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a1a10; }
-    .view-section { padding: 20px; display: none; }
-    .view-section.active { display: block; }
+    .login-card {
+      background: rgba(30, 20, 15, 0.95);
+      border: 1px solid #3a2a20;
+      padding: 35px;
+      border-radius: 12px;
+      width: 340px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    }
 
-    /* UI CARDS & TABLES */
-    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .card { background: rgba(30, 20, 15, 0.85); border: 1px solid #3a2a20; padding: 18px; border-radius: 8px; margin-bottom: 15px; }
-    .card small { color: #a08a75; font-size: 0.75rem; text-transform: uppercase; font-weight: bold; }
-    .card h2 { margin-top: 5px; font-size: 1.5rem; color: #d4a373; }
-    
-    table { width: 100%; border-collapse: collapse; background: rgba(25, 15, 10, 0.9); border-radius: 6px; overflow: hidden; border: 1px solid #3a2a20; margin-top: 10px; }
-    th, td { padding: 10px 12px; text-align: left; font-size: 0.85rem; border-bottom: 1px solid #2a1a10; }
-    th { background: #1a100c; color: #d4a373; font-weight: 600; }
-    .badge-ok { background: #1e4620; color: #2ecc71; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; }
-    .badge-low { background: #4a1210; color: #e74c3c; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; }
+    .login-card h2 {
+      color: #d4a373;
+      margin-bottom: 5px;
+      letter-spacing: 1px;
+    }
+
+    .login-card small {
+      color: #a08a75;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    /* ==============================
+       FORM
+    ============================== */
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: #d4a373;
+      margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      background: #1a100c;
+      border: 1px solid #3a2a20;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      background: #d4a373;
+      color: #120d0a;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      background: #faedcd;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .login-error {
+      color: #e74c3c;
+      font-size: 0.8rem;
+      margin-top: 10px;
+      display: none;
+    }
+
+    /* ==============================
+       APPLICATION
+    ============================== */
+
+    #app-screen {
+      display: none;
+      height: 100vh;
+    }
+
+    #app-container {
+      display: flex;
+      height: 100%;
+      flex-direction: row;
+    }
+
+    /* ==============================
+       SIDEBAR
+    ============================== */
+
+    aside {
+      width: 230px;
+      background: #1a100c;
+      border-right: 1px solid #2a1a10;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    aside .brand {
+      padding: 18px;
+      font-weight: bold;
+      color: #d4a373;
+      background: #0d0806;
+      text-align: center;
+      border-bottom: 1px solid #2a1a10;
+    }
+
+    aside nav {
+      flex: 1;
+      padding-top: 10px;
+      overflow-y: auto;
+    }
+
+    aside nav button {
+      width: 100%;
+      padding: 12px 18px;
+      background: none;
+      border: none;
+      color: #a08a75;
+      text-align: left;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    aside nav button:hover,
+    aside nav button.active {
+      background: #2a1a10;
+      color: #d4a373;
+      border-left: 4px solid #d4a373;
+    }
+
+    /* ==============================
+       MAIN
+    ============================== */
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      background: #120d0a;
+    }
+
+    header {
+      background: #1a100c;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2a1a10;
+    }
+
+    .view-section {
+      padding: 20px;
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    /* ==============================
+       CARDS
+    ============================== */
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: rgba(30, 20, 15, 0.85);
+      border: 1px solid #3a2a20;
+      padding: 18px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .card small {
+      color: #a08a75;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .card h2 {
+      margin-top: 5px;
+      font-size: 1.5rem;
+      color: #d4a373;
+    }
+
+    /* ==============================
+       TABLES
+    ============================== */
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(25, 15, 10, 0.9);
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #3a2a20;
+      margin-top: 10px;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #2a1a10;
+    }
+
+    th {
+      background: #1a100c;
+      color: #d4a373;
+      font-weight: 600;
+    }
+
+    .badge-ok {
+      background: #1e4620;
+      color: #2ecc71;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
+    .badge-low {
+      background: #4a1210;
+      color: #e74c3c;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
+    /* ==============================
+       MOBILE
+    ============================== */
 
     @media (max-width: 768px) {
-      #app-container { flex-direction: column; }
-      aside { width: 100%; height: auto; }
-      aside nav { display: flex; overflow-x: auto; }
-      aside nav button { flex: 0 0 auto; padding: 10px; }
+      #app-container {
+        flex-direction: column;
+      }
+
+      aside {
+        width: 100%;
+        height: auto;
+      }
+
+      aside nav {
+        display: flex;
+        overflow-x: auto;
+      }
+
+      aside nav button {
+        flex: 0 0 auto;
+        padding: 10px;
+      }
+
+      header {
+        padding: 12px;
+      }
+
+      .view-section {
+        padding: 12px;
+      }
+
+      .login-card {
+        width: 90%;
+      }
     }
   </style>
 </head>
+
 <body>
 
-  <!-- LOGIN MODULE -->
+  <!-- ==========================================
+       LOGIN
+  =========================================== -->
+
   <div id="login-screen">
+
     <div class="login-card">
+
       <h2>☕ LONEWOLF CAFE</h2>
-      <small>AI INVENTORY ASSISTANT</small>
-      <form onsubmit="handleLogin(event)">
+
+      <small>INVENTORY MANAGEMENT SYSTEM</small>
+
+      <form id="login-form">
+
         <div class="form-group">
-          <label>Username</label>
-          <input type="text" id="username" value="admin" required>
+
+          <label for="username">
+            Username
+          </label>
+
+          <input
+            type="text"
+            id="username"
+            placeholder="Enter username"
+            required
+          >
+
         </div>
+
         <div class="form-group">
-          <label>Password</label>
-          <input type="password" value="password" required>
+
+          <label for="password">
+            Password
+          </label>
+
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter password"
+            required
+          >
+
         </div>
-        <button class="btn btn-block" type="submit">SIGN IN</button>
+
+        <button
+          class="btn btn-block"
+          type="submit"
+        >
+          SIGN IN
+        </button>
+
+        <p
+          id="login-error"
+          class="login-error"
+        >
+          Invalid username or password.
+        </p>
+
       </form>
+
     </div>
+
   </div>
 
-  <!-- APPLICATION INTERFACE -->
+
+  <!-- ==========================================
+       APPLICATION
+  =========================================== -->
+
   <div id="app-screen">
+
     <div id="app-container">
-      
-      <!-- NAVIGATION -->
+
+
+      <!-- ======================================
+           SIDEBAR
+      ======================================= -->
+
       <aside>
-        <div class="brand">☕ LONEWOLF CAFE</div>
+
+        <div class="brand">
+          ☕ LONEWOLF CAFE
+        </div>
+
         <nav>
-          <button class="active" onclick="showView('v-dash', this)">📊 1. Dashboard</button>
-          <button onclick="showView('v-stock', this)">📦 2. Stock Control</button>
-          <button onclick="showView('v-entry', this)">⬆️ 3. Stock Entries</button>
-          <button onclick="showView('v-supp', this)">🚚 4. Suppliers</button>
-          <button onclick="showView('v-logs', this)">📑 5. Audit Logs</button>
-          <button onclick="showView('v-set', this)">⚙️ 6. System Settings</button>
+
+          <button
+            class="active"
+            onclick="showView('v-dash', this)"
+          >
+            📊 1. Dashboard
+          </button>
+
+          <button
+            onclick="showView('v-stock', this)"
+          >
+            📦 2. Stock Control
+          </button>
+
+          <button
+            onclick="showView('v-entry', this)"
+          >
+            ⬆️ 3. Stock Entries
+          </button>
+
+          <button
+            onclick="showView('v-supp', this)"
+          >
+            🚚 4. Suppliers
+          </button>
+
+          <button
+            onclick="showView('v-logs', this)"
+          >
+            📑 5. Audit Logs
+          </button>
+
+          <button
+            onclick="showView('v-set', this)"
+          >
+            ⚙️ 6. System Settings
+          </button>
+
         </nav>
+
       </aside>
 
-      <!-- CONTENT PANES -->
+
+      <!-- ======================================
+           MAIN CONTENT
+      ======================================= -->
+
       <main>
+
         <header>
-          <h4 id="page-title" style="color: #d4a373;">Dashboard Overview</h4>
-          <span style="font-size: 0.85rem; color: #a08a75;">User: <strong id="user-display" style="color: #fff;">Angel (Admin)</strong></span>
+
+          <h4
+            id="page-title"
+            style="color:#d4a373;"
+          >
+            Dashboard Overview
+          </h4>
+
+          <span
+            style="font-size:0.85rem;color:#a08a75;"
+          >
+            User:
+
+            <strong
+              id="user-display"
+              style="color:#fff;"
+            >
+              Admin
+            </strong>
+
+          </span>
+
         </header>
 
-        <!-- 1. DASHBOARD -->
-        <section id="v-dash" class="view-section active">
+
+        <!-- ====================================
+             DASHBOARD
+        ===================================== -->
+
+        <section
+          id="v-dash"
+          class="view-section active"
+        >
+
           <div class="card-grid">
-            <div class="card"><small>Total Items</small><h2>145</h2></div>
-            <div class="card"><small>Daily Revenue</small><h2>₱14,250.00</h2></div>
-            <div class="card"><small>Low Stock Alerts</small><h2 style="color: #e74c3c;">3 ⚠️</h2></div>
+
+            <div class="card">
+
+              <small>
+                Total Items
+              </small>
+
+              <h2 id="total-items">
+                0
+              </h2>
+
+            </div>
+
+
+            <div class="card">
+
+              <small>
+                Items Low in Stock
+              </small>
+
+              <h2
+                id="low-stock-count"
+                style="color:#e74c3c;"
+              >
+                0
+              </h2>
+
+            </div>
+
+
+            <div class="card">
+
+              <small>
+                Stock Entries
+              </small>
+
+              <h2 id="entry-count">
+                0
+              </h2>
+
+            </div>
+
           </div>
+
+
           <div class="card">
-            <h4 style="color: #d4a373;">🤖 AI Stock Insight</h4>
-            <p style="font-size: 0.85rem; color: #a08a75; margin-top: 8px;">
-              <strong>Prediction:</strong> Fresh Whole Milk will run out in approximately <strong>4 hours</strong> based on current sales speed. Reorder recommendation: 12.0 Liters.
+
+            <h4
+              style="color:#d4a373;"
+            >
+              Inventory Summary
+            </h4>
+
+            <p
+              style="
+                font-size:0.85rem;
+                color:#a08a75;
+                margin-top:8px;
+              "
+            >
+              View and manage the current café inventory using
+              Stock Control and Stock Entries.
             </p>
+
           </div>
+
         </section>
 
-        <!-- 3. STOCK CONTROL -->
-        <section id="v-stock" class="view-section">
+
+        <!-- ====================================
+             STOCK CONTROL
+        ===================================== -->
+
+        <section
+          id="v-stock"
+          class="view-section"
+        >
+
+          <h3
+            style="color:#d4a373;margin-bottom:10px;"
+          >
+            Stock Control
+          </h3>
+
           <table>
+
             <thead>
-              <tr><th>Item Name</th><th>SKU</th><th>Category</th><th>Qty</th><th>Status</th></tr>
+
+              <tr>
+
+                <th>
+                  Item Name
+                </th>
+
+                <th>
+                  SKU
+                </th>
+
+                <th>
+                  Category
+                </th>
+
+                <th>
+                  Qty
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+              </tr>
+
             </thead>
-            <tbody id="stock-table-body"></tbody>
+
+            <tbody
+              id="stock-table-body"
+            >
+            </tbody>
+
           </table>
+
         </section>
 
-        <!-- 4. STOCK ENTRIES -->
-        <section id="v-entry" class="view-section">
-          <div class="card" style="max-width: 450px;">
-            <h4 style="color: #d4a373; margin-bottom: 12px;">Record Stock Adjustment</h4>
+
+        <!-- ====================================
+             STOCK ENTRIES
+        ===================================== -->
+
+        <section
+          id="v-entry"
+          class="view-section"
+        >
+
+          <div
+            class="card"
+            style="max-width:450px;"
+          >
+
+            <h4
+              style="
+                color:#d4a373;
+                margin-bottom:12px;
+              "
+            >
+              Record Stock Adjustment
+            </h4>
+
 
             <div class="form-group">
-              <label>Entry Type</label>
+
+              <label>
+                Entry Type
+              </label>
+
               <select id="entry-type">
-                <option value="in">Stock In (Supplier Delivery)</option>
-                <option value="out">Stock Out (Spillage/Waste)</option>
+
+                <option value="in">
+                  Stock In (Supplier Delivery)
+                </option>
+
+                <option value="out">
+                  Stock Out (Spillage/Waste)
+                </option>
+
               </select>
+
             </div>
+
 
             <div class="form-group">
-              <label>Select Item</label>
-              <select id="entry-item"></select>
+
+              <label>
+                Select Item
+              </label>
+
+              <select id="entry-item">
+              </select>
+
             </div>
+
 
             <div class="form-group">
-              <label>Quantity</label>
-              <input type="number" id="entry-quantity" value="5" min="0.01" step="0.01">
+
+              <label>
+                Quantity
+              </label>
+
+              <input
+                type="number"
+                id="entry-quantity"
+                value="5"
+                min="0.01"
+                step="0.01"
+              >
+
             </div>
 
-            <button class="btn btn-block" onclick="submitAdjustment()">
+
+            <button
+              class="btn btn-block"
+              onclick="submitAdjustment()"
+            >
               Submit Adjustment
             </button>
+
           </div>
+
         </section>
 
-        <!-- 5. SUPPLIERS -->
-        <section id="v-supp" class="view-section">
-          <table>
-            <thead><tr><th>Supplier Name</th><th>Contact Person</th><th>Phone</th><th>Category</th></tr></thead>
-            <tbody>
-              <tr><td>Northern Beans Co.</td><td>Marco Perez</td><td>0917-123-4567</td><td>Coffee Beans</td></tr>
-              <tr><td>CDO Dairy Fresh</td><td>Sarah Gomez</td><td>0988-765-4321</td><td>Dairy Products</td></tr>
-            </tbody>
-          </table>
-        </section>
 
-        <!-- 6. AUDIT LOGS -->
-        <section id="v-logs" class="view-section">
+        <!-- ====================================
+             SUPPLIERS
+        ===================================== -->
+
+        <section
+          id="v-supp"
+          class="view-section"
+        >
+
+          <h3
+            style="color:#d4a373;margin-bottom:10px;"
+          >
+            Supplier Directory
+          </h3>
+
           <table>
+
             <thead>
-              <tr><th>Timestamp</th><th>User</th><th>Action</th><th>Details</th></tr>
+
+              <tr>
+
+                <th>
+                  Supplier Name
+                </th>
+
+                <th>
+                  Contact Person
+                </th>
+
+                <th>
+                  Phone
+                </th>
+
+                <th>
+                  Category
+                </th>
+
+              </tr>
+
             </thead>
-            <tbody id="audit-log-body"></tbody>
+
+            <tbody>
+
+              <tr>
+
+                <td>
+                  Northern Beans Co.
+                </td>
+
+                <td>
+                  Marco Perez
+                </td>
+
+                <td>
+                  0917-123-4567
+                </td>
+
+                <td>
+                  Coffee Beans
+                </td>
+
+              </tr>
+
+
+              <tr>
+
+                <td>
+                  CDO Dairy Fresh
+                </td>
+
+                <td>
+                  Sarah Gomez
+                </td>
+
+                <td>
+                  0988-765-4321
+                </td>
+
+                <td>
+                  Dairy Products
+                </td>
+
+              </tr>
+
+            </tbody>
+
           </table>
+
         </section>
 
-        <!-- 7. SYSTEM SETTINGS -->
-        <section id="v-set" class="view-section">
-          <div class="card" style="max-width: 500px;">
-            <h4 style="color: #d4a373; margin-bottom: 12px;">Database & API Settings</h4>
+
+        <!-- ====================================
+             AUDIT LOGS
+        ===================================== -->
+
+        <section
+          id="v-logs"
+          class="view-section"
+        >
+
+          <h3
+            style="color:#d4a373;margin-bottom:10px;"
+          >
+            Audit Logs & History
+          </h3>
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Timestamp
+                </th>
+
+                <th>
+                  User
+                </th>
+
+                <th>
+                  Action
+                </th>
+
+                <th>
+                  Details
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody
+              id="audit-log-body"
+            >
+            </tbody>
+
+          </table>
+
+        </section>
+
+
+        <!-- ====================================
+             SYSTEM SETTINGS
+        ===================================== -->
+
+        <section
+          id="v-set"
+          class="view-section"
+        >
+
+          <div
+            class="card"
+            style="max-width:500px;"
+          >
+
+            <h4
+              style="
+                color:#d4a373;
+                margin-bottom:12px;
+              "
+            >
+              System Settings
+            </h4>
+
+
             <div class="form-group">
-              <label>Firebase / Endpoint URL</label>
-              <input type="text" value="https://lonewolf-cafe.firebaseio.com/inventory.json">
-            </div>
-            <div class="form-group">
-              <label>Inventory Spreadsheet</label>
+
+              <label>
+                Inventory Spreadsheet
+              </label>
+
               <a
-                href="1usRW_KQqp1diJ686eqh_WcEj2YSi9d_VXiCsURIPBJg"
+                href="https://docs.google.com/spreadsheets/d/1usRW_KQqp1diJ686eqh_WcEj2YSi9d_VXiCsURIPBJg/edit"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="btn"
-                style="display:block; text-align:center; text-decoration:none;"
+                style="
+                  display:block;
+                  text-align:center;
+                  text-decoration:none;
+                "
               >
                 📊 Open Inventory Spreadsheet
               </a>
+
             </div>
-            <button class="btn" onclick="alert('Settings Saved!')">Save Configuration</button>
+
+
+            <button
+              class="btn"
+              onclick="saveSettings()"
+            >
+              Save Configuration
+            </button>
+
           </div>
+
         </section>
 
       </main>
+
     </div>
+
   </div>
 
+
+  <!-- ==========================================
+       JAVASCRIPT
+  =========================================== -->
+
   <script>
+
     // ==========================================
-    // LONEWOLF CAFE INVENTORY DATA
+    // DEFAULT INVENTORY
     // ==========================================
 
     const defaultInventory = [
+
       {
         name: "Espresso Beans",
         sku: "EB01",
@@ -221,6 +927,7 @@
         unit: "kg",
         min: 10.0
       },
+
       {
         name: "Fresh Whole Milk",
         sku: "WM03",
@@ -229,6 +936,7 @@
         unit: "L",
         min: 10.0
       },
+
       {
         name: "Spanish Syrup",
         sku: "SS02",
@@ -237,30 +945,53 @@
         unit: "Btl",
         min: 2.0
       }
+
     ];
 
+
+    // ==========================================
+    // DEFAULT AUDIT LOGS
+    // ==========================================
+
     const defaultLogs = [
+
       {
         time: "02:14 PM",
-        user: "Angel",
+        user: "Admin",
         action: "Stock In",
         details: "Added +5 Fresh Whole Milk"
       },
+
       {
         time: "11:30 AM",
-        user: "Barista1",
-        action: "POS Sale",
-        details: "Deducted 1x Espresso Beans"
+        user: "Admin",
+        action: "Stock Out",
+        details: "Deducted 1 Espresso Beans"
       }
+
     ];
 
+
+    // ==========================================
+    // LOAD DATA
+    // ==========================================
+
     let inventory =
-      JSON.parse(localStorage.getItem("lonewolfInventory")) ||
-      JSON.parse(JSON.stringify(defaultInventory));
+      JSON.parse(
+        localStorage.getItem("lonewolfInventory")
+      ) ||
+      JSON.parse(
+        JSON.stringify(defaultInventory)
+      );
+
 
     let auditLogs =
-      JSON.parse(localStorage.getItem("lonewolfAuditLogs")) ||
-      JSON.parse(JSON.stringify(defaultLogs));
+      JSON.parse(
+        localStorage.getItem("lonewolfAuditLogs")
+      ) ||
+      JSON.parse(
+        JSON.stringify(defaultLogs)
+      );
 
 
     // ==========================================
@@ -268,6 +999,7 @@
     // ==========================================
 
     function saveData() {
+
       localStorage.setItem(
         "lonewolfInventory",
         JSON.stringify(inventory)
@@ -277,6 +1009,7 @@
         "lonewolfAuditLogs",
         JSON.stringify(auditLogs)
       );
+
     }
 
 
@@ -284,69 +1017,174 @@
     // LOGIN
     // ==========================================
 
-    function handleLogin(e) {
-      e.preventDefault();
+    document
+      .getElementById("login-form")
+      .addEventListener("submit", function(event) {
 
-      const username =
-        document.getElementById("username").value.trim() || "admin";
+        event.preventDefault();
 
-      document.getElementById("user-display").innerText =
-        username + " (Admin)";
+        const username =
+          document
+            .getElementById("username")
+            .value
+            .trim();
 
-      document.getElementById("login-screen").style.display = "none";
-      document.getElementById("app-screen").style.display = "block";
+        const password =
+          document
+            .getElementById("password")
+            .value;
 
-      renderInventory();
-      renderItemOptions();
-      renderAuditLogs();
-    }
+        const loginError =
+          document.getElementById("login-error");
+
+
+        // LOGIN DETAILS
+
+        const correctUsername = "admin";
+
+        const correctPassword = "password";
+
+
+        // CHECK LOGIN
+
+        if (
+          username === correctUsername &&
+          password === correctPassword
+        ) {
+
+          loginError.style.display = "none";
+
+          document
+            .getElementById("login-screen")
+            .style.display = "none";
+
+          document
+            .getElementById("app-screen")
+            .style.display = "block";
+
+          document
+            .getElementById("user-display")
+            .innerText =
+              username + " (Admin)";
+
+
+          renderInventory();
+
+          renderItemOptions();
+
+          renderAuditLogs();
+
+          updateDashboard();
+
+        }
+
+        else {
+
+          loginError.style.display = "block";
+
+        }
+
+      });
 
 
     // ==========================================
     // NAVIGATION
     // ==========================================
 
-    function showView(viewId, btn) {
+    function showView(viewId, button) {
 
       document
         .querySelectorAll(".view-section")
-        .forEach(section => section.classList.remove("active"));
+        .forEach(function(section) {
+
+          section.classList.remove("active");
+
+        });
+
 
       document
         .querySelectorAll("aside nav button")
-        .forEach(button => button.classList.remove("active"));
+        .forEach(function(btn) {
 
-      document
-        .getElementById(viewId)
-        .classList.add("active");
+          btn.classList.remove("active");
 
-      if (btn) {
-        btn.classList.add("active");
+        });
+
+
+      const selectedView =
+        document.getElementById(viewId);
+
+      if (selectedView) {
+
+        selectedView.classList.add("active");
+
       }
+
+
+      if (button) {
+
+        button.classList.add("active");
+
+      }
+
 
       const titles = {
-        "v-dash": "Dashboard Overview",
-        "v-stock": "Stock Control Management",
-        "v-entry": "Stock Adjustment Entry",
-        "v-supp": "Supplier Directory",
-        "v-logs": "Audit Logs & History",
-        "v-set": "System Configuration"
+
+        "v-dash":
+          "Dashboard Overview",
+
+        "v-stock":
+          "Stock Control Management",
+
+        "v-entry":
+          "Stock Adjustment Entry",
+
+        "v-supp":
+          "Supplier Directory",
+
+        "v-logs":
+          "Audit Logs & History",
+
+        "v-set":
+          "System Configuration"
+
       };
 
-      document.getElementById("page-title").innerText =
-        titles[viewId] || "System Overview";
+
+      document
+        .getElementById("page-title")
+        .innerText =
+          titles[viewId] ||
+          "System Overview";
+
 
       if (viewId === "v-stock") {
+
         renderInventory();
+
       }
+
 
       if (viewId === "v-entry") {
+
         renderItemOptions();
+
       }
 
+
       if (viewId === "v-logs") {
+
         renderAuditLogs();
+
       }
+
+
+      if (viewId === "v-dash") {
+
+        updateDashboard();
+
+      }
+
     }
 
 
@@ -357,46 +1195,86 @@
     function renderInventory() {
 
       const tbody =
-        document.getElementById("stock-table-body");
+        document.getElementById(
+          "stock-table-body"
+        );
+
 
       if (!tbody) return;
 
+
       tbody.innerHTML = "";
 
-      inventory.forEach(item => {
 
-        const row = document.createElement("tr");
+      inventory.forEach(function(item) {
+
+        const row =
+          document.createElement("tr");
+
 
         const status =
           item.qty <= item.min
+
             ? '<span class="badge-low">Low Stock</span>'
+
             : '<span class="badge-ok">In Stock</span>';
 
+
         row.innerHTML = `
-          <td>${item.name}</td>
-          <td>${item.sku}</td>
-          <td>${item.category}</td>
-          <td>${formatQty(item.qty)} ${item.unit}</td>
-          <td>${status}</td>
+
+          <td>
+            ${item.name}
+          </td>
+
+          <td>
+            ${item.sku}
+          </td>
+
+          <td>
+            ${item.category}
+          </td>
+
+          <td>
+            ${formatQty(item.qty)}
+            ${item.unit}
+          </td>
+
+          <td>
+            ${status}
+          </td>
+
         `;
 
+
         tbody.appendChild(row);
+
       });
+
     }
 
 
+    // ==========================================
+    // FORMAT QUANTITY
+    // ==========================================
+
     function formatQty(quantity) {
 
-      const number = Number(quantity);
+      const number =
+        Number(quantity);
+
 
       if (Number.isInteger(number)) {
+
         return number.toString();
+
       }
+
 
       return number
         .toFixed(2)
         .replace(/0+$/, "")
         .replace(/\.$/, "");
+
     }
 
 
@@ -407,30 +1285,56 @@
     function renderItemOptions() {
 
       const select =
-        document.getElementById("entry-item");
+        document.getElementById(
+          "entry-item"
+        );
+
 
       if (!select) return;
 
-      const oldValue = select.value;
+
+      const oldValue =
+        select.value;
+
 
       select.innerHTML = "";
 
-      inventory.forEach(item => {
+
+      inventory.forEach(function(item) {
 
         const option =
-          document.createElement("option");
+          document.createElement(
+            "option"
+          );
 
-        option.value = item.sku;
-        option.textContent = item.name;
+
+        option.value =
+          item.sku;
+
+
+        option.textContent =
+          item.name;
+
 
         select.appendChild(option);
+
       });
 
+
       if (
-        inventory.some(item => item.sku === oldValue)
+        inventory.some(
+          function(item) {
+
+            return item.sku === oldValue;
+
+          }
+        )
       ) {
+
         select.value = oldValue;
+
       }
+
     }
 
 
@@ -441,51 +1345,95 @@
     function submitAdjustment() {
 
       const type =
-        document.getElementById("entry-type").value;
+        document.getElementById(
+          "entry-type"
+        ).value;
+
 
       const sku =
-        document.getElementById("entry-item").value;
+        document.getElementById(
+          "entry-item"
+        ).value;
+
 
       const quantity =
         parseFloat(
-          document.getElementById("entry-quantity").value
+          document.getElementById(
+            "entry-quantity"
+          ).value
         );
 
+
       const username =
-        document.getElementById("username").value.trim() ||
+        document.getElementById(
+          "username"
+        ).value.trim() ||
         "admin";
 
 
+      // CHECK ITEM
+
       if (!sku) {
-        alert("Please select an item.");
+
+        alert(
+          "Please select an item."
+        );
+
         return;
+
       }
 
 
-      if (isNaN(quantity) || quantity <= 0) {
-        alert("Please enter a quantity greater than 0.");
+      // CHECK QUANTITY
+
+      if (
+        isNaN(quantity) ||
+        quantity <= 0
+      ) {
+
+        alert(
+          "Please enter a quantity greater than 0."
+        );
+
         return;
+
       }
 
+
+      // FIND ITEM
 
       const item =
-        inventory.find(product => product.sku === sku);
+        inventory.find(
+          function(product) {
+
+            return product.sku === sku;
+
+          }
+        );
 
 
       if (!item) {
-        alert("Item not found.");
+
+        alert(
+          "Item not found."
+        );
+
         return;
+
       }
 
 
       // STOCK IN
+
       if (type === "in") {
 
         item.qty += quantity;
 
       }
 
+
       // STOCK OUT
+
       else {
 
         if (quantity > item.qty) {
@@ -498,21 +1446,32 @@
           );
 
           return;
+
         }
 
+
         item.qty -= quantity;
+
       }
 
 
-      // Get current time
-      const now = new Date();
+      // CURRENT TIME
+
+      const now =
+        new Date();
+
 
       const timestamp =
-        now.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit"
-        });
+        now.toLocaleTimeString(
+          [],
+          {
+            hour: "2-digit",
+            minute: "2-digit"
+          }
+        );
 
+
+      // ACTION
 
       const action =
         type === "in"
@@ -520,35 +1479,57 @@
           : "Stock Out";
 
 
+      // DETAILS
+
       const details =
         type === "in"
-          ? `Added +${formatQty(quantity)} ${item.name}`
-          : `Deducted ${formatQty(quantity)} ${item.name}`;
+
+          ? "Added +" +
+            formatQty(quantity) +
+            " " +
+            item.name
+
+          : "Deducted " +
+            formatQty(quantity) +
+            " " +
+            item.name;
 
 
-      // Add newest audit log first
+      // ADD AUDIT LOG
+
       auditLogs.unshift({
+
         time: timestamp,
+
         user: username,
+
         action: action,
+
         details: details
+
       });
 
 
-      // Save
+      // SAVE
+
       saveData();
 
 
-      // Update screen
+      // UPDATE DISPLAY
+
       renderInventory();
+
       renderItemOptions();
+
       renderAuditLogs();
 
+      updateDashboard();
+
+
+      // SUCCESS MESSAGE
 
       alert(
-        "Stock Entry Saved!
-
-" +
+        "Stock Entry Saved!\n\n" +
         item.name +
         " is now " +
         formatQty(item.qty) +
@@ -557,8 +1538,14 @@
       );
 
 
-      // Reset quantity
-      document.getElementById("entry-quantity").value = 5;
+      // RESET
+
+      document
+        .getElementById(
+          "entry-quantity"
+        )
+        .value = 5;
+
     }
 
 
@@ -569,26 +1556,121 @@
     function renderAuditLogs() {
 
       const tbody =
-        document.getElementById("audit-log-body");
+        document.getElementById(
+          "audit-log-body"
+        );
+
 
       if (!tbody) return;
 
+
       tbody.innerHTML = "";
 
-      auditLogs.forEach(log => {
+
+      auditLogs.forEach(function(log) {
 
         const row =
           document.createElement("tr");
 
+
         row.innerHTML = `
-          <td>${log.time}</td>
-          <td>${log.user}</td>
-          <td>${log.action}</td>
-          <td>${log.details}</td>
+
+          <td>
+            ${log.time}
+          </td>
+
+          <td>
+            ${log.user}
+          </td>
+
+          <td>
+            ${log.action}
+          </td>
+
+          <td>
+            ${log.details}
+          </td>
+
         `;
 
+
         tbody.appendChild(row);
+
       });
+
+    }
+
+
+    // ==========================================
+    // DASHBOARD
+    // ==========================================
+
+    function updateDashboard() {
+
+      const totalItems =
+        document.getElementById(
+          "total-items"
+        );
+
+
+      const lowStock =
+        document.getElementById(
+          "low-stock-count"
+        );
+
+
+      const entryCount =
+        document.getElementById(
+          "entry-count"
+        );
+
+
+      if (totalItems) {
+
+        totalItems.innerText =
+          inventory.length;
+
+      }
+
+
+      if (lowStock) {
+
+        const lowCount =
+          inventory.filter(
+            function(item) {
+
+              return item.qty <= item.min;
+
+            }
+          ).length;
+
+
+        lowStock.innerText =
+          lowCount;
+
+      }
+
+
+      if (entryCount) {
+
+        entryCount.innerText =
+          auditLogs.length;
+
+      }
+
+    }
+
+
+    // ==========================================
+    // SETTINGS
+    // ==========================================
+
+    function saveSettings() {
+
+      alert(
+        "Settings Saved!"
+      );
+
     }
 
 
@@ -601,11 +1683,17 @@
       function() {
 
         renderInventory();
+
         renderItemOptions();
+
         renderAuditLogs();
+
+        updateDashboard();
 
       }
     );
+
   </script>
+
 </body>
 </html>
