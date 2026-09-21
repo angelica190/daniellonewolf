@@ -625,7 +625,7 @@
 
           <div
             class="card"
-            style="max-width:450px;"
+            style="max-width:500px;"
           >
 
             <h4
@@ -634,65 +634,140 @@
                 margin-bottom:12px;
               "
             >
-              Record Stock Adjustment
+              Stock Entry
             </h4>
 
-
             <div class="form-group">
 
               <label>
-                Entry Type
+                Action
               </label>
 
-              <select id="entry-type">
-
-                <option value="in">
-                  Stock In (Supplier Delivery)
-                </option>
-
-                <option value="out">
-                  Stock Out (Spillage/Waste)
-                </option>
-
+              <select id="entry-action" onchange="toggleEntryMode()">
+                <option value="adjust">Change Existing Stock</option>
+                <option value="new">Add New Item</option>
               </select>
 
             </div>
 
+            <div id="adjust-fields">
 
-            <div class="form-group">
+              <div class="form-group">
 
-              <label>
-                Select Item
-              </label>
+                <label>
+                  Entry Type
+                </label>
 
-              <select id="entry-item">
-              </select>
+                <select id="entry-type">
+                  <option value="in">
+                    Stock In (Supplier Delivery)
+                  </option>
+
+                  <option value="out">
+                    Stock Out (Spillage/Waste)
+                  </option>
+
+                </select>
+
+              </div>
+
+              <div class="form-group">
+
+                <label>
+                  Select Item
+                </label>
+
+                <select id="entry-item">
+                </select>
+
+              </div>
+
+              <div class="form-group">
+
+                <label>
+                  Quantity
+                </label>
+
+                <input
+                  type="number"
+                  id="entry-quantity"
+                  value="5"
+                  min="0.01"
+                  step="0.01"
+                >
+
+              </div>
 
             </div>
 
+            <div id="new-item-fields" style="display:none;">
 
-            <div class="form-group">
+              <div class="form-group">
+                <label>Item Name</label>
+                <input
+                  type="text"
+                  id="new-item-name"
+                  placeholder="Example: Caramel Syrup"
+                >
+              </div>
 
-              <label>
-                Quantity
-              </label>
+              <div class="form-group">
+                <label>SKU</label>
+                <input
+                  type="text"
+                  id="new-item-sku"
+                  placeholder="Example: CS01"
+                >
+              </div>
 
-              <input
-                type="number"
-                id="entry-quantity"
-                value="5"
-                min="0.01"
-                step="0.01"
-              >
+              <div class="form-group">
+                <label>Category</label>
+                <input
+                  type="text"
+                  id="new-item-category"
+                  placeholder="Example: Syrups"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Quantity</label>
+                <input
+                  type="number"
+                  id="new-item-quantity"
+                  value="5"
+                  min="0"
+                  step="0.01"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Unit</label>
+                <input
+                  type="text"
+                  id="new-item-unit"
+                  placeholder="Example: Btl, kg, L"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Minimum Stock</label>
+                <input
+                  type="number"
+                  id="new-item-min"
+                  value="1"
+                  min="0"
+                  step="0.01"
+                >
+              </div>
 
             </div>
-
 
             <button
               class="btn btn-block"
-              onclick="submitAdjustment()"
+              type="button"
+              onclick="submitStockEntry()"
             >
-              Submit Adjustment
+              Submit
             </button>
 
           </div>
@@ -912,6 +987,14 @@
   =========================================== -->
 
   <script>
+
+    // ==========================================
+    // GOOGLE SHEETS CONNECTION
+    // ==========================================
+
+    // Paste your deployed Google Apps Script Web App URL here.
+    const GOOGLE_SCRIPT_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+
 
     // ==========================================
     // DEFAULT INVENTORY
@@ -1339,22 +1422,348 @@
 
 
     // ==========================================
-    // SUBMIT STOCK ADJUSTMENT
+    // STOCK ENTRY MODE
     // ==========================================
 
-    function submitAdjustment() {
+    function toggleEntryMode() {
+
+      const mode =
+        document.getElementById("entry-action").value;
+
+      const adjustFields =
+        document.getElementById("adjust-fields");
+
+      const newItemFields =
+        document.getElementById("new-item-fields");
+
+      if (mode === "new") {
+
+        adjustFields.style.display = "none";
+        newItemFields.style.display = "block";
+
+      } else {
+
+        adjustFields.style.display = "block";
+        newItemFields.style.display = "none";
+
+      }
+
+    }
+
+
+    // ==========================================
+    // SEND DATA TO GOOGLE SHEETS
+    // ==========================================
+
+    async function sendToGoogleSheets(data) {
+
+      if (
+        !GOOGLE_SCRIPT_URL ||
+        GOOGLE_SCRIPT_URL ===
+          "PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"
+      ) {
+
+        console.warn(
+          "Google Apps Script URL has not been configured."
+        );
+
+        return false;
+      }
+
+      try {
+
+        await fetch(
+          GOOGLE_SCRIPT_URL,
+          {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+              "Content-Type": "text/plain"
+            },
+            body: JSON.stringify(data)
+          }
+        );
+
+        return true;
+
+      } catch (error) {
+
+        console.error(
+          "Google Sheets error:",
+          error
+        );
+
+        return false;
+
+      }
+
+    }
+
+
+    // ==========================================
+    // SUBMIT STOCK ENTRY
+    // ==========================================
+
+    async function submitStockEntry() {
+
+      const mode =
+        document.getElementById("entry-action").value;
+
+      const username =
+        document.getElementById("username").value.trim() ||
+        "admin";
+
+
+      // ==========================================
+      // ADD NEW ITEM
+      // ==========================================
+
+      if (mode === "new") {
+
+        const name =
+          document.getElementById(
+            "new-item-name"
+          ).value.trim();
+
+        const sku =
+          document.getElementById(
+            "new-item-sku"
+          ).value.trim();
+
+        const category =
+          document.getElementById(
+            "new-item-category"
+          ).value.trim();
+
+        const quantity =
+          parseFloat(
+            document.getElementById(
+              "new-item-quantity"
+            ).value
+          );
+
+        const unit =
+          document.getElementById(
+            "new-item-unit"
+          ).value.trim();
+
+        const min =
+          parseFloat(
+            document.getElementById(
+              "new-item-min"
+            ).value
+          );
+
+
+        if (
+          !name ||
+          !sku ||
+          !category ||
+          !unit
+        ) {
+
+          alert(
+            "Please complete all item fields."
+          );
+
+          return;
+
+        }
+
+
+        if (
+          isNaN(quantity) ||
+          quantity < 0
+        ) {
+
+          alert(
+            "Please enter a valid quantity."
+          );
+
+          return;
+
+        }
+
+
+        if (
+          isNaN(min) ||
+          min < 0
+        ) {
+
+          alert(
+            "Please enter a valid minimum stock."
+          );
+
+          return;
+
+        }
+
+
+        const existingItem =
+          inventory.find(
+            function(item) {
+              return item.sku.toLowerCase() ===
+                sku.toLowerCase();
+            }
+          );
+
+
+        if (existingItem) {
+
+          alert(
+            "That SKU already exists. " +
+            "Use Change Existing Stock instead."
+          );
+
+          return;
+
+        }
+
+
+        const newItem = {
+
+          name: name,
+          sku: sku,
+          category: category,
+          qty: quantity,
+          unit: unit,
+          min: min
+
+        };
+
+
+        inventory.push(newItem);
+
+
+        const now = new Date();
+
+        const timestamp =
+          now.toLocaleString(
+            [],
+            {
+              dateStyle: "medium",
+              timeStyle: "short"
+            }
+          );
+
+
+        auditLogs.unshift({
+
+          time: timestamp,
+          user: username,
+          action: "New Item",
+          details:
+            "Added " +
+            name +
+            " (" +
+            formatQty(quantity) +
+            " " +
+            unit +
+            ")"
+
+        });
+
+
+        saveData();
+
+        renderInventory();
+        renderItemOptions();
+        renderAuditLogs();
+        updateDashboard();
+
+
+        const sheetsSaved =
+          await sendToGoogleSheets({
+
+            action: "New Item",
+            date: new Date().toISOString(),
+            item: name,
+            sku: sku,
+            category: category,
+            type: "New Item",
+            quantity: quantity,
+            unit: unit,
+            minimumStock: min,
+            currentStock: quantity,
+            user: username
+
+          });
+
+
+        if (sheetsSaved) {
+
+          alert(
+            "New Item Added!\n\n" +
+            name +
+            " - " +
+            formatQty(quantity) +
+            " " +
+            unit +
+            "\n\n" +
+            "The item was added to the website " +
+            "and sent to Google Sheets."
+          );
+
+        } else {
+
+          alert(
+            "New Item Added!\n\n" +
+            name +
+            " - " +
+            formatQty(quantity) +
+            " " +
+            unit +
+            "\n\n" +
+            "The item was added to the website, " +
+            "but Google Sheets is not connected yet."
+          );
+
+        }
+
+
+        document.getElementById(
+          "new-item-name"
+        ).value = "";
+
+        document.getElementById(
+          "new-item-sku"
+        ).value = "";
+
+        document.getElementById(
+          "new-item-category"
+        ).value = "";
+
+        document.getElementById(
+          "new-item-quantity"
+        ).value = 5;
+
+        document.getElementById(
+          "new-item-unit"
+        ).value = "";
+
+        document.getElementById(
+          "new-item-min"
+        ).value = 1;
+
+
+        return;
+
+      }
+
+
+      // ==========================================
+      // CHANGE EXISTING STOCK
+      // ==========================================
 
       const type =
         document.getElementById(
           "entry-type"
         ).value;
 
-
       const sku =
         document.getElementById(
           "entry-item"
         ).value;
-
 
       const quantity =
         parseFloat(
@@ -1363,15 +1772,6 @@
           ).value
         );
 
-
-      const username =
-        document.getElementById(
-          "username"
-        ).value.trim() ||
-        "admin";
-
-
-      // CHECK ITEM
 
       if (!sku) {
 
@@ -1383,8 +1783,6 @@
 
       }
 
-
-      // CHECK QUANTITY
 
       if (
         isNaN(quantity) ||
@@ -1400,14 +1798,10 @@
       }
 
 
-      // FIND ITEM
-
       const item =
         inventory.find(
           function(product) {
-
             return product.sku === sku;
-
           }
         );
 
@@ -1423,18 +1817,11 @@
       }
 
 
-      // STOCK IN
-
       if (type === "in") {
 
         item.qty += quantity;
 
-      }
-
-
-      // STOCK OUT
-
-      else {
+      } else {
 
         if (quantity > item.qty) {
 
@@ -1449,29 +1836,22 @@
 
         }
 
-
         item.qty -= quantity;
 
       }
 
 
-      // CURRENT TIME
-
-      const now =
-        new Date();
-
+      const now = new Date();
 
       const timestamp =
-        now.toLocaleTimeString(
+        now.toLocaleString(
           [],
           {
-            hour: "2-digit",
-            minute: "2-digit"
+            dateStyle: "medium",
+            timeStyle: "short"
           }
         );
 
-
-      // ACTION
 
       const action =
         type === "in"
@@ -1479,73 +1859,94 @@
           : "Stock Out";
 
 
-      // DETAILS
-
       const details =
         type === "in"
-
           ? "Added +" +
             formatQty(quantity) +
             " " +
             item.name
-
           : "Deducted " +
             formatQty(quantity) +
             " " +
             item.name;
 
 
-      // ADD AUDIT LOG
-
       auditLogs.unshift({
 
         time: timestamp,
-
         user: username,
-
         action: action,
-
         details: details
 
       });
 
 
-      // SAVE
-
       saveData();
 
-
-      // UPDATE DISPLAY
-
       renderInventory();
-
       renderItemOptions();
-
       renderAuditLogs();
-
       updateDashboard();
 
 
-      // SUCCESS MESSAGE
+      const sheetsSaved =
+        await sendToGoogleSheets({
 
-      alert(
-        "Stock Entry Saved!\n\n" +
-        item.name +
-        " is now " +
-        formatQty(item.qty) +
-        " " +
-        item.unit
-      );
+          action: action,
+          date: new Date().toISOString(),
+          item: item.name,
+          sku: item.sku,
+          category: item.category,
+          type: action,
+          quantity: quantity,
+          unit: item.unit,
+          minimumStock: item.min,
+          currentStock: item.qty,
+          user: username
+
+        });
 
 
-      // RESET
+      if (sheetsSaved) {
 
-      document
-        .getElementById(
-          "entry-quantity"
-        )
-        .value = 5;
+        alert(
+          "Stock Entry Saved!\n\n" +
+          item.name +
+          " is now " +
+          formatQty(item.qty) +
+          " " +
+          item.unit +
+          "\n\n" +
+          "The change was also sent to Google Sheets."
+        );
 
+      } else {
+
+        alert(
+          "Stock Entry Saved!\n\n" +
+          item.name +
+          " is now " +
+          formatQty(item.qty) +
+          " " +
+          item.unit +
+          "\n\n" +
+          "The website was updated, but Google Sheets " +
+          "is not connected yet."
+        );
+
+      }
+
+
+      document.getElementById(
+        "entry-quantity"
+      ).value = 5;
+
+    }
+
+
+    // Keep the old function name working if another part of the page calls it.
+    function submitAdjustment() {
+      submitStockEntry();
     }
 
 
