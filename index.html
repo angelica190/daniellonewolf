@@ -953,11 +953,19 @@
           class="view-section"
         >
 
-          <h3
-            style="color:#d4a373;margin-bottom:10px;"
-          >
-            Audit Logs & History
-          </h3>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">
+            <h3 style="color:#d4a373;margin:0;">
+              Audit Logs & History
+            </h3>
+            <button
+              class="btn"
+              type="button"
+              onclick="deleteAuditLogs()"
+              style="background:#8b2e2e;color:#fff;"
+            >
+              🗑️ Delete Logs
+            </button>
+          </div>
 
           <table>
 
@@ -2177,6 +2185,60 @@
 
     }
 
+
+
+    // ==========================================
+    // DELETE AUDIT LOGS
+    // ==========================================
+
+    function deleteAuditLogs() {
+      // Only Admin accounts should be allowed to clear audit history.
+      const role = localStorage.getItem("lonewolfUserRole") || "";
+      const currentUser = localStorage.getItem("lonewolfCurrentUser") || "";
+
+      if (role.toLowerCase() !== "admin") {
+        alert("Only an Admin can delete audit logs.");
+        return;
+      }
+
+      if (!auditLogs.length) {
+        alert("There are no audit logs to delete.");
+        return;
+      }
+
+      const confirmed = confirm(
+        "WARNING!\n\n" +
+        "This will permanently remove all audit logs stored in this browser.\n\n" +
+        "Are you sure you want to continue?"
+      );
+
+      if (!confirmed) return;
+
+      auditLogs = [];
+      localStorage.setItem("lonewolfAuditLogs", JSON.stringify(auditLogs));
+
+      renderAuditLogs();
+      updateDashboard();
+
+      // Record the clearing event in Google Sheets if available.
+      sendToGoogleSheets({
+        action: "Delete Audit Logs",
+        date: new Date().toISOString(),
+        item: "",
+        sku: "",
+        category: "",
+        type: "Audit Logs Cleared",
+        quantity: 0,
+        unit: "",
+        minimumStock: "",
+        currentStock: "",
+        user: currentUser || "Admin"
+      }).catch(function(error) {
+        console.error("Could not record audit-log deletion:", error);
+      });
+
+      alert("Audit logs have been deleted.");
+    }
 
     // ==========================================
     // DASHBOARD
