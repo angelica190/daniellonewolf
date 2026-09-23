@@ -109,6 +109,48 @@
       display: none;
     }
 
+    .login-success {
+      color: #2ecc71;
+      font-size: 0.8rem;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .auth-switch {
+      margin-top: 15px;
+      color: #a08a75;
+      font-size: 0.8rem;
+    }
+
+    .auth-switch button {
+      background: none;
+      border: none;
+      color: #d4a373;
+      cursor: pointer;
+      font-weight: bold;
+      padding: 0;
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logout-btn {
+      background: #4a1210;
+      color: #fff;
+      border: 1px solid #7a241d;
+      padding: 7px 11px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .logout-btn:hover {
+      background: #6b1814;
+    }
+
     /* ==============================
        APPLICATION
     ============================== */
@@ -380,6 +422,48 @@
 
       </form>
 
+      <form id="signup-form" style="display:none;">
+
+        <div class="form-group">
+          <label for="signup-name">Full Name</label>
+          <input type="text" id="signup-name" placeholder="Enter full name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="signup-username">Username</label>
+          <input type="text" id="signup-username" placeholder="Create username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" placeholder="Create password" required>
+        </div>
+
+        <div class="form-group">
+          <label for="signup-role">Role</label>
+          <select id="signup-role">
+            <option value="Staff">Staff</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+
+        <button class="btn btn-block" type="submit">CREATE ACCOUNT</button>
+
+        <p id="signup-error" class="login-error"></p>
+        <p id="signup-success" class="login-success"></p>
+
+        <p class="auth-switch">
+          Already have an account?
+          <button type="button" onclick="showLoginForm()">Sign in</button>
+        </p>
+
+      </form>
+
+      <p id="login-switch" class="auth-switch">
+        Don't have an account?
+        <button type="button" onclick="showSignupForm()">Create an account</button>
+      </p>
+
     </div>
 
   </div>
@@ -463,19 +547,13 @@
             Dashboard Overview
           </h4>
 
-          <span
-            style="font-size:0.85rem;color:#a08a75;"
-          >
-            User:
-
-            <strong
-              id="user-display"
-              style="color:#fff;"
-            >
-              Admin
-            </strong>
-
-          </span>
+          <div class="user-area">
+            <span style="font-size:0.85rem;color:#a08a75;">
+              User:
+              <strong id="user-display" style="color:#fff;">Admin</strong>
+            </span>
+            <button class="logout-btn" type="button" onclick="logout()">🚪 Logout</button>
+          </div>
 
         </header>
 
@@ -948,7 +1026,7 @@
               </label>
 
               <a
-                href="1usRW_KQqp1diJ686eqh_WcEj2YSi9d_VXiCsURIPBJg"
+                href="https://docs.google.com/spreadsheets/d/1usRW_KQqp1diJ686eqh_WcEj2YSi9d_VXiCsURIPBJg/edit"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="btn"
@@ -1056,26 +1134,31 @@
 
 
     // ==========================================
-    // LOAD DATA
+    // LOAD DATA / ACCOUNTS / SESSION
     // ==========================================
 
     let inventory =
-      JSON.parse(
-        localStorage.getItem("lonewolfInventory")
-      ) ||
-      JSON.parse(
-        JSON.stringify(defaultInventory)
-      );
-
+      JSON.parse(localStorage.getItem("lonewolfInventory")) ||
+      JSON.parse(JSON.stringify(defaultInventory));
 
     let auditLogs =
-      JSON.parse(
-        localStorage.getItem("lonewolfAuditLogs")
-      ) ||
-      JSON.parse(
-        JSON.stringify(defaultLogs)
-      );
+      JSON.parse(localStorage.getItem("lonewolfAuditLogs")) ||
+      JSON.parse(JSON.stringify(defaultLogs));
 
+    // Demo/admin account. For real multi-device authentication,
+    // move account validation to Google Apps Script/Google Sheets.
+    let accounts =
+      JSON.parse(localStorage.getItem("lonewolfAccounts")) || [
+        {
+          name: "Administrator",
+          username: "admin",
+          password: "password",
+          role: "Admin"
+        }
+      ];
+
+    let currentUser =
+      JSON.parse(sessionStorage.getItem("lonewolfCurrentUser")) || null;
 
     // ==========================================
     // SAVE DATA
@@ -1097,8 +1180,66 @@
 
 
     // ==========================================
-    // LOGIN
+    // LOGIN / SIGN UP / LOGOUT
     // ==========================================
+
+    function saveAccounts() {
+      localStorage.setItem("lonewolfAccounts", JSON.stringify(accounts));
+    }
+
+    function showSignupForm() {
+      document.getElementById("login-form").style.display = "none";
+      document.getElementById("login-switch").style.display = "none";
+      document.getElementById("signup-form").style.display = "block";
+    }
+
+    function showLoginForm() {
+      document.getElementById("signup-form").style.display = "none";
+      document.getElementById("login-form").style.display = "block";
+      document.getElementById("login-switch").style.display = "block";
+
+      document.getElementById("signup-error").style.display = "none";
+      document.getElementById("signup-success").style.display = "none";
+    }
+
+    function openApplication(user) {
+      currentUser = {
+        name: user.name,
+        username: user.username,
+        role: user.role
+      };
+
+      sessionStorage.setItem(
+        "lonewolfCurrentUser",
+        JSON.stringify(currentUser)
+      );
+
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("app-screen").style.display = "block";
+
+      document.getElementById("user-display").innerText =
+        user.name + " (" + user.role + ")";
+
+      renderInventory();
+      renderItemOptions();
+      renderAuditLogs();
+      updateDashboard();
+    }
+
+    function logout() {
+      if (!confirm("Are you sure you want to log out?")) return;
+
+      currentUser = null;
+      sessionStorage.removeItem("lonewolfCurrentUser");
+
+      document.getElementById("app-screen").style.display = "none";
+      document.getElementById("login-screen").style.display = "flex";
+
+      document.getElementById("login-form").reset();
+      document.getElementById("login-error").style.display = "none";
+
+      showLoginForm();
+    }
 
     document
       .getElementById("login-form")
@@ -1107,68 +1248,104 @@
         event.preventDefault();
 
         const username =
-          document
-            .getElementById("username")
-            .value
-            .trim();
+          document.getElementById("username").value.trim();
 
         const password =
-          document
-            .getElementById("password")
-            .value;
+          document.getElementById("password").value;
 
         const loginError =
           document.getElementById("login-error");
 
+        const user = accounts.find(function(account) {
+          return (
+            account.username.toLowerCase() === username.toLowerCase() &&
+            account.password === password
+          );
+        });
 
-        // LOGIN DETAILS
-
-        const correctUsername = "admin";
-
-        const correctPassword = "password";
-
-
-        // CHECK LOGIN
-
-        if (
-          username === correctUsername &&
-          password === correctPassword
-        ) {
-
-          loginError.style.display = "none";
-
-          document
-            .getElementById("login-screen")
-            .style.display = "none";
-
-          document
-            .getElementById("app-screen")
-            .style.display = "block";
-
-          document
-            .getElementById("user-display")
-            .innerText =
-              username + " (Admin)";
-
-
-          renderInventory();
-
-          renderItemOptions();
-
-          renderAuditLogs();
-
-          updateDashboard();
-
-        }
-
-        else {
-
+        if (!user) {
+          loginError.innerText = "Invalid username or password.";
           loginError.style.display = "block";
-
+          return;
         }
 
+        loginError.style.display = "none";
+        openApplication(user);
       });
 
+    document
+      .getElementById("signup-form")
+      .addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        const name =
+          document.getElementById("signup-name").value.trim();
+
+        const username =
+          document.getElementById("signup-username").value.trim();
+
+        const password =
+          document.getElementById("signup-password").value;
+
+        const role =
+          document.getElementById("signup-role").value;
+
+        const error =
+          document.getElementById("signup-error");
+
+        const success =
+          document.getElementById("signup-success");
+
+        error.style.display = "none";
+        success.style.display = "none";
+
+        if (password.length < 6) {
+          error.innerText = "Password must be at least 6 characters.";
+          error.style.display = "block";
+          return;
+        }
+
+        const exists = accounts.some(function(account) {
+          return account.username.toLowerCase() === username.toLowerCase();
+        });
+
+        if (exists) {
+          error.innerText = "That username already exists.";
+          error.style.display = "block";
+          return;
+        }
+
+        const newAccount = {
+          name: name,
+          username: username,
+          password: password,
+          role: role
+        };
+
+        accounts.push(newAccount);
+        saveAccounts();
+
+        // Also send the registration record to Google Sheets.
+        await sendToGoogleSheets({
+          action: "Register",
+          date: new Date().toISOString(),
+          name: name,
+          username: username,
+          role: role
+        });
+
+        success.innerText =
+          "Account created successfully. You can now sign in.";
+
+        success.style.display = "block";
+
+        document.getElementById("signup-form").reset();
+
+        setTimeout(function() {
+          showLoginForm();
+        }, 1200);
+      });
 
     // ==========================================
     // NAVIGATION
@@ -1510,8 +1687,7 @@
         document.getElementById("entry-action").value;
 
       const username =
-        document.getElementById("username").value.trim() ||
-        "admin";
+        currentUser ? currentUser.username : "unknown";
 
 
       // ==========================================
@@ -2084,12 +2260,17 @@
       function() {
 
         renderInventory();
-
         renderItemOptions();
-
         renderAuditLogs();
-
         updateDashboard();
+
+        if (currentUser) {
+          openApplication(currentUser);
+        } else {
+          document.getElementById("login-screen").style.display = "flex";
+          document.getElementById("app-screen").style.display = "none";
+          showLoginForm();
+        }
 
       }
     );
