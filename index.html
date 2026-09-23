@@ -1867,6 +1867,7 @@
           await sendToGoogleSheets({
 
             action: "New Item",
+            auditId: auditId,
             date: new Date().toISOString(),
             item: name,
             sku: sku,
@@ -2049,6 +2050,9 @@
           ? "Stock In"
           : "Stock Out";
 
+      const auditId =
+        (crypto.randomUUID ? crypto.randomUUID() :
+        Date.now() + "-" + Math.random().toString(36).slice(2));
 
       const details =
         type === "in"
@@ -2084,6 +2088,7 @@
         await sendToGoogleSheets({
 
           action: action,
+          auditId: auditId,
           date: new Date().toISOString(),
           item: item.name,
           sku: item.sku,
@@ -2212,6 +2217,13 @@
         "This cannot be undone."
       )) return;
 
+      // Keep the exact logs before removing them locally.
+      // These details are sent to Apps Script so it can remove
+      // the matching rows from the Google Sheet.
+      const deletedLogs = indexes.map(function(index) {
+        return auditLogs[index];
+      });
+
       indexes.forEach(function(index) {
         auditLogs.splice(index, 1);
       });
@@ -2224,11 +2236,16 @@
         action: "Delete Selected Audit Logs",
         date: new Date().toISOString(),
         type: "Audit Logs Deleted",
-        quantity: indexes.length,
-        user: currentUser.username
+        quantity: deletedLogs.length,
+        user: currentUser.username,
+        logs: deletedLogs
       });
 
-      alert(indexes.length + " audit log(s) deleted.");
+      alert(
+        deletedLogs.length +
+        " audit log(s) deleted from this device.\n\n" +
+        "The matching Google Sheets rows were also requested for deletion."
+      );
     }
 
     function selectAllAuditLogs() {
@@ -2270,6 +2287,10 @@
 
       if (!confirmed) return;
 
+      // Keep a copy so Apps Script knows which existing audit rows
+      // should be removed from the Google Sheet.
+      const deletedLogs = auditLogs.slice();
+
       auditLogs = [];
       saveData();
 
@@ -2280,11 +2301,16 @@
         action: "Delete Audit Logs",
         date: new Date().toISOString(),
         type: "All Audit Logs Cleared",
-        quantity: 0,
-        user: currentUser.username
+        quantity: deletedLogs.length,
+        user: currentUser.username,
+        logs: deletedLogs
       });
 
-      alert("All audit logs have been deleted.");
+      alert(
+        "All " + deletedLogs.length +
+        " audit logs were deleted from this device.\n\n" +
+        "The matching Google Sheets rows were also requested for deletion."
+      );
     }
 
     // ==========================================
