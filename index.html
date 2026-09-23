@@ -953,18 +953,21 @@
           class="view-section"
         >
 
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
             <h3 style="color:#d4a373;margin:0;">
               Audit Logs & History
             </h3>
-            <button
-              class="btn"
-              type="button"
-              onclick="deleteAuditLogs()"
-              style="background:#8b2e2e;color:#fff;"
-            >
-              🗑️ Delete Logs
-            </button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn" type="button" onclick="selectAllAuditLogs()">
+                ☑️ Select All
+              </button>
+              <button class="btn" type="button" onclick="deleteSelectedAuditLogs()" style="background:#8b2e2e;color:#fff;">
+                🗑️ Delete Selected
+              </button>
+              <button class="btn" type="button" onclick="deleteAuditLogs()" style="background:#5c1713;color:#fff;">
+                🗑️ Clear All
+              </button>
+            </div>
           </div>
 
           <table>
@@ -972,6 +975,10 @@
             <thead>
 
               <tr>
+
+                <th style="width:45px;text-align:center;">
+                  ✓
+                </th>
 
                 <th>
                   Timestamp
@@ -2141,63 +2148,112 @@
     function renderAuditLogs() {
 
       const tbody =
-        document.getElementById(
-          "audit-log-body"
-        );
-
+        document.getElementById("audit-log-body");
 
       if (!tbody) return;
 
-
       tbody.innerHTML = "";
 
+      auditLogs.forEach(function(log, index) {
 
-      auditLogs.forEach(function(log) {
-
-        const row =
-          document.createElement("tr");
-
+        const row = document.createElement("tr");
 
         row.innerHTML = `
-
-          <td>
-            ${log.time}
+          <td style="text-align:center;">
+            <input
+              type="checkbox"
+              class="audit-log-checkbox"
+              data-index="${index}"
+              style="width:16px;height:16px;cursor:pointer;"
+            >
           </td>
 
-          <td>
-            ${log.user}
-          </td>
-
-          <td>
-            ${log.action}
-          </td>
-
-          <td>
-            ${log.details}
-          </td>
-
+          <td>${log.time}</td>
+          <td>${log.user}</td>
+          <td>${log.action}</td>
+          <td>${log.details}</td>
         `;
 
-
         tbody.appendChild(row);
-
       });
-
     }
-
-
 
     // ==========================================
     // DELETE AUDIT LOGS
     // ==========================================
 
-    function deleteAuditLogs() {
-      // Only Admin accounts should be allowed to clear audit history.
-      const role = localStorage.getItem("lonewolfUserRole") || "";
-      const currentUser = localStorage.getItem("lonewolfCurrentUser") || "";
+    function isCurrentUserAdmin() {
+      return currentUser &&
+        String(currentUser.role || "").trim().toLowerCase() === "admin";
+    }
 
-      if (role.toLowerCase() !== "admin") {
-        alert("Only an Admin can delete audit logs.");
+    function deleteSelectedAuditLogs() {
+      if (!isCurrentUserAdmin()) {
+        alert("Only an Admin can delete audit logs.\n\nCurrent role: " +
+          (currentUser ? currentUser.role : "Not logged in"));
+        return;
+      }
+
+      const checkboxes = Array.from(
+        document.querySelectorAll(".audit-log-checkbox:checked")
+      );
+
+      if (checkboxes.length === 0) {
+        alert("Please select at least one audit log to delete.");
+        return;
+      }
+
+      const indexes = checkboxes
+        .map(function(box) { return Number(box.dataset.index); })
+        .sort(function(a, b) { return b - a; });
+
+      if (!confirm(
+        "Delete " + indexes.length + " selected audit log(s)?\n\n" +
+        "This cannot be undone."
+      )) return;
+
+      indexes.forEach(function(index) {
+        auditLogs.splice(index, 1);
+      });
+
+      saveData();
+      renderAuditLogs();
+      updateDashboard();
+
+      sendToGoogleSheets({
+        action: "Delete Selected Audit Logs",
+        date: new Date().toISOString(),
+        type: "Audit Logs Deleted",
+        quantity: indexes.length,
+        user: currentUser.username
+      });
+
+      alert(indexes.length + " audit log(s) deleted.");
+    }
+
+    function selectAllAuditLogs() {
+      const checkboxes =
+        document.querySelectorAll(".audit-log-checkbox");
+
+      if (!checkboxes.length) {
+        alert("There are no audit logs to select.");
+        return;
+      }
+
+      const allChecked =
+        Array.from(checkboxes).every(function(box) {
+          return box.checked;
+        });
+
+      checkboxes.forEach(function(box) {
+        box.checked = !allChecked;
+      });
+    }
+
+    function deleteAuditLogs() {
+      if (!isCurrentUserAdmin()) {
+        alert("Only an Admin can delete audit logs.\n\nCurrent role: " +
+          (currentUser ? currentUser.role : "Not logged in"));
         return;
       }
 
@@ -2208,36 +2264,27 @@
 
       const confirmed = confirm(
         "WARNING!\n\n" +
-        "This will permanently remove all audit logs stored in this browser.\n\n" +
+        "This will permanently remove ALL audit logs stored in this browser.\n\n" +
         "Are you sure you want to continue?"
       );
 
       if (!confirmed) return;
 
       auditLogs = [];
-      localStorage.setItem("lonewolfAuditLogs", JSON.stringify(auditLogs));
+      saveData();
 
       renderAuditLogs();
       updateDashboard();
 
-      // Record the clearing event in Google Sheets if available.
       sendToGoogleSheets({
         action: "Delete Audit Logs",
         date: new Date().toISOString(),
-        item: "",
-        sku: "",
-        category: "",
-        type: "Audit Logs Cleared",
+        type: "All Audit Logs Cleared",
         quantity: 0,
-        unit: "",
-        minimumStock: "",
-        currentStock: "",
-        user: currentUser || "Admin"
-      }).catch(function(error) {
-        console.error("Could not record audit-log deletion:", error);
+        user: currentUser.username
       });
 
-      alert("Audit logs have been deleted.");
+      alert("All audit logs have been deleted.");
     }
 
     // ==========================================
